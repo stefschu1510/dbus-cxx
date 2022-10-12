@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <dbus-cxx.h>
 #include <iostream>
+#include <fstream>
 
 #include "test_macros.h"
 
@@ -886,6 +887,32 @@ bool call_message_iterator_insertion_extraction_operator_struct() {
     return true;
 }
 
+bool return_message_extraction_map_map_map() {
+    // open the file and load the response message
+    std::ifstream fin;
+    uint8_t buffer[2048];
+    const char response_file_name[] = "GetManagedObjectsResponse.bin";
+    size_t length;
+    fin.open( response_file_name );
+    if( fin.fail() ){
+      std::cerr << "ERROR: Can't open file " << response_file_name << std::endl;
+      return false;
+    }
+    while ( ! fin.eof() )
+    {
+      fin.read((char*)buffer, 2048);
+      length = fin.gcount();
+    }
+    fin.close();
+
+    std::shared_ptr<DBus::Message> retmsg;
+    retmsg = DBus::Message::create_from_data(buffer, length);
+    std::map<DBus::Path, std::map<std::string, std::map<std::string, DBus::Variant>>> retval;
+    retmsg >> retval;
+
+    return true;
+}
+
 #define ADD_TEST(name) do{ if( test_name == STRINGIFY(name) ){ \
             ret = call_message_append_extract_iterator_##name();\
         } \
@@ -893,6 +920,11 @@ bool call_message_iterator_insertion_extraction_operator_struct() {
 
 #define ADD_TEST2(name) do{ if( test_name == STRINGIFY(name)"-2" ){ \
             ret = call_message_iterator_insertion_extraction_operator_##name();\
+        } \
+    } while( 0 )
+
+#define ADD_TEST3(name) do{ if( test_name == STRINGIFY(name)"-3" ){ \
+            ret = return_message_extraction_##name();\
         } \
     } while( 0 )
 
@@ -905,7 +937,7 @@ int main( int argc, char** argv ) {
     bool ret = false;
 
     DBus::set_logging_function( DBus::log_std_err );
-    DBus::set_log_level( SL_DEBUG );
+    DBus::set_log_level( SL_TRACE );
 
     ADD_TEST( bool );
     ADD_TEST( byte );
@@ -955,6 +987,8 @@ int main( int argc, char** argv ) {
     ADD_TEST2( multiple );
     ADD_TEST2( struct );
     ADD_TEST2( variant );
+
+    ADD_TEST3( map_map_map );
 
     return !ret;
 }

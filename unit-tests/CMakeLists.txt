@@ -38,6 +38,8 @@ target_link_libraries( test-messageiterator ${TEST_LINK} )
 target_include_directories( test-messageiterator PUBLIC ${CMAKE_SOURCE_DIR} )
 target_include_directories( test-messageiterator PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
 set_property( TARGET test-messageiterator PROPERTY CXX_STANDARD 17 )
+add_custom_command(TARGET test-messageiterator POST_BUILD 
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/GetManagedObjectsResponse.bin ${CMAKE_CURRENT_BINARY_DIR}/GetManagedObjectsResponse.bin)
 
 add_test( NAME messageiterator-Bool COMMAND test-messageiterator bool)
 add_test( NAME messageiterator-Byte COMMAND test-messageiterator byte)
